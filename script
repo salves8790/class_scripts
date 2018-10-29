@@ -1,0 +1,26 @@
+echo "This is a bash script to do multiple sequence alignment with
+muscle and phylogenetic tree construction with RAxML. Welcome!"
+
+#Set up variables
+infile='data/co1.fa'
+outfile='out.phy'
+jobname='tree2'
+mu_maxiters=10
+
+#Trim taxon names out of fasta header
+cat $infile |  sed "s/[|]//g" | awk -F " " '{if($2 ~ /[A-Za-z_0-9]/){print ">" $2                                         }else{print $0}}' > trim.fa
+
+wcin=$(cat trim.fa | wc -m)
+
+./muscle -in trim.fa -phyiout $outfile -maxiters $mu_maxiters
+
+wcout=$(cat $outfile | wc -m)
+
+wcchange=$(expr $wcout - $wcin)
+
+echo "Muscle added $wcchange characters.\n"
+
+
+./raxml -p 12345 -s $outfile -m GTRCAT -n $jobname
+
+echo "RAxML Finished!"
